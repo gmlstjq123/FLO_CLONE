@@ -1,23 +1,38 @@
 package com.chrome.umcflo
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.fragment.app.setFragmentResultListener
 import com.chrome.umcflo.databinding.FragmentAlbumBinding
 
 class AlbumFragment : Fragment() {
 
     lateinit var binding: FragmentAlbumBinding
 
+
+
     override fun onCreateView(
-        inflater: LayoutInflater,
+        inflater: LayoutInflater, 
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentAlbumBinding.inflate(inflater,container,false)
+
+        setFragmentResultListener("TitleInfo") { requestKey, bundle ->
+            binding.albumMusicTitleTv.text = bundle.getString("title")
+        }
+
+        setFragmentResultListener("SingerInfo") { requestKey, bundle ->
+            binding.albumSingerNameTv.text = bundle.getString("singer")
+        }
+
+        // binding.albumMusicTitleTv.text = arguments?.getString("title")
+        // binding.albumSingerNameTv.text = arguments?.getString("singer")
 
         binding.albumBackIv.setOnClickListener {
             (context as MainActivity).supportFragmentManager.beginTransaction()
