@@ -2,6 +2,8 @@ package com.chrome.umcflo
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -10,11 +12,17 @@ import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
+import androidx.viewpager2.widget.ViewPager2
 import com.chrome.umcflo.databinding.FragmentHomeBinding
+import java.util.Timer
+import java.util.TimerTask
 
 class HomeFragment : Fragment() {
 
     lateinit var binding : FragmentHomeBinding
+
+    private val timer = Timer()
+    private val handler = Handler(Looper.getMainLooper())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +56,40 @@ class HomeFragment : Fragment() {
                 .replace(R.id.main_frm, AlbumFragment()).commitAllowingStateLoss()
         }
 
+        val bannerAdapter = BannerVPAdapter(this)
+        bannerAdapter.addFragment(BannerFragment(R.drawable.img_home_viewpager_exp))
+        bannerAdapter.addFragment(BannerFragment(R.drawable.img_home_viewpager_exp2))
+
+        binding.homeBannerVp.adapter = bannerAdapter
+        binding.homeBannerVp.orientation = ViewPager2.ORIENTATION_HORIZONTAL
+
+        binding.homeBannerIndicator.setViewPager(binding.homeBannerVp)
+
+        autoSlide(bannerAdapter)
+
+        val pannelAdpater = PannelVpAdapter(this)
+        pannelAdpater.addFragment(PannelFragment(R.drawable.img_first_album_default))
+        pannelAdpater.addFragment(PannelFragment(R.drawable.img_first_album_default))
+        binding.homePannelBackgroundVp.adapter = pannelAdpater
+        binding.homePannelBackgroundVp.orientation = ViewPager2.ORIENTATION_HORIZONTAL
+
+        binding.homePannelIndicator.setViewPager(binding.homePannelBackgroundVp)
+
         return binding.root
+    }
+
+    private fun autoSlide(adapter: BannerVPAdapter) {
+        timer.scheduleAtFixedRate(object : TimerTask() {
+            override fun run() {
+                handler.post {
+                    val nextItem = binding.homeBannerVp.currentItem + 1
+                    if (nextItem < adapter.itemCount) {
+                        binding.homeBannerVp.currentItem = nextItem
+                    } else {
+                        binding.homeBannerVp.currentItem = 0 // 순환
+                    }
+                }
+            }
+        }, 3000, 3000)
     }
 }
