@@ -125,7 +125,6 @@
             app:layout_constraintStart_toStartOf="@+id/song_music_lyrics_01_iv"
             app:layout_constraintTop_toBottomOf="@+id/song_music_lyrics_01_iv" />
 
-
         <LinearLayout
             android:id="@+id/song_like_iv_layout"
             android:layout_width="wrap_content"

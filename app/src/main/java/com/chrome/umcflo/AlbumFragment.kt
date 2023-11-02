@@ -10,10 +10,12 @@ import android.widget.Toast
 import androidx.fragment.app.setFragmentResultListener
 import com.chrome.umcflo.databinding.FragmentAlbumBinding
 import com.google.android.material.tabs.TabLayoutMediator
+import com.google.gson.Gson
 
 class AlbumFragment : Fragment() {
 
     lateinit var binding: FragmentAlbumBinding
+    private var gson: Gson = Gson()
 
     private val information = arrayListOf("수록곡", "상세정보", "영상")
 
@@ -23,6 +25,10 @@ class AlbumFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentAlbumBinding.inflate(inflater,container,false)
+
+        val albumToJson = arguments?.getString("album")
+        val album = gson.fromJson(albumToJson, Album::class.java)
+        setInit(album)
 
         setFragmentResultListener("TitleInfo") { requestKey, bundle ->
             binding.albumMusicTitleTv.text = bundle.getString("title")
@@ -51,4 +57,9 @@ class AlbumFragment : Fragment() {
         return binding.root
     }
 
+    private fun setInit(album : Album) {
+        binding.albumAlbumIv.setImageResource(album.coverImage!!)
+        binding.albumMusicTitleTv.text = album.title.toString()
+        binding.albumSingerNameTv.text = album.singer.toString()
+    }
 }
