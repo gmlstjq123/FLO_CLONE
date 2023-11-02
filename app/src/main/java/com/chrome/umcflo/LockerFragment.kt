@@ -10,71 +10,26 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.chrome.umcflo.databinding.FragmentHomeBinding
 import com.chrome.umcflo.databinding.FragmentLockerBinding
+import com.google.android.material.tabs.TabLayoutMediator
 import com.google.gson.Gson
 
 class LockerFragment : Fragment() {
-
-    private var albumDatas = ArrayList<Album>()
-    lateinit var binding : FragmentLockerBinding
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
+    lateinit var binding: FragmentLockerBinding
+    private val information = arrayListOf("저장한곡", "음악파일")
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-
+    ): View {
         binding = FragmentLockerBinding.inflate(inflater, container, false)
-        albumDatas.apply {
-            add(Album("Butter", "방탄소년단 (BTS)", R.drawable.img_album_exp))
-            add(Album("Lilac", "아이유 (IU)", R.drawable.img_album_exp2))
-            add(Album("Next Level", "에스파 (AESPA)", R.drawable.img_album_exp3))
-            add(Album("Boy with Luv", "방탄소년단 (BTS)", R.drawable.img_album_exp4))
-            add(Album("BBoom BBoom", "모모랜드 (MOMOLAND)", R.drawable.img_album_exp5))
-            add(Album("Weekend", "태연 (Tae Yeon)", R.drawable.img_album_exp6))
-            add(Album("Butter", "방탄소년단 (BTS)", R.drawable.img_album_exp))
-            add(Album("Lilac", "아이유 (IU)", R.drawable.img_album_exp2))
-            add(Album("Next Level", "에스파 (AESPA)", R.drawable.img_album_exp3))
-            add(Album("Boy with Luv", "방탄소년단 (BTS)", R.drawable.img_album_exp4))
-            add(Album("BBoom BBoom", "모모랜드 (MOMOLAND)", R.drawable.img_album_exp5))
-            add(Album("Weekend", "태연 (Tae Yeon)", R.drawable.img_album_exp6))
-            add(Album("Butter", "방탄소년단 (BTS)", R.drawable.img_album_exp))
-            add(Album("Lilac", "아이유 (IU)", R.drawable.img_album_exp2))
-            add(Album("Next Level", "에스파 (AESPA)", R.drawable.img_album_exp3))
-            add(Album("Boy with Luv", "방탄소년단 (BTS)", R.drawable.img_album_exp4))
-            add(Album("BBoom BBoom", "모모랜드 (MOMOLAND)", R.drawable.img_album_exp5))
-            add(Album("Weekend", "태연 (Tae Yeon)", R.drawable.img_album_exp6))
-        }
 
-        val lockerAlbumRVAdapter = LockerAlbumRVAdapter(albumDatas)
-        binding.lockerMusicAlbumRv.adapter = lockerAlbumRVAdapter
-        binding.lockerMusicAlbumRv.layoutManager = LinearLayoutManager(requireActivity())
-
-        lockerAlbumRVAdapter.setItemClickListener(object : LockerAlbumRVAdapter.OnItemClickListener {
-            override fun onItemClick(album: Album)
-            {
-                changeAlbumFragment(album)
-            }
-
-            override fun onRemoveAlbum(position: Int) {
-                lockerAlbumRVAdapter.removeItem(position)
-            }
-        })
+        val lockerAdapter = LockerVPAdapter(this)
+        binding.lockerContentVp.adapter = lockerAdapter
+        TabLayoutMediator(binding.lockerContentTb, binding.lockerContentVp) { tab, position ->
+            tab.text = information[position]
+        }.attach()
 
         return binding.root
-    }
-
-    private fun changeAlbumFragment(album: Album) {
-        (context as MainActivity).supportFragmentManager.beginTransaction()
-            .replace(R.id.main_frm, AlbumFragment().apply {
-                arguments = Bundle().apply {
-                    val gson = Gson()
-                    val albumToJson = gson.toJson(album)
-                    putString("album", albumToJson)
-                }
-            })
-            .commitAllowingStateLoss()
     }
 }

@@ -24,10 +24,6 @@ import com.google.gson.Gson
 import java.util.Timer
 import java.util.TimerTask
 
-interface CommunicationInterface {
-    fun sendData(album: Album)
-}
-
 class HomeFragment : Fragment(), CommunicationInterface {
 
     lateinit var binding : FragmentHomeBinding
