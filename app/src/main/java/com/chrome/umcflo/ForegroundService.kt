@@ -13,21 +13,18 @@ import androidx.annotation.RequiresApi
 
 class ForegroundService : Service() {
 
-    private lateinit var musicPlayer : MediaPlayer
-
     override fun onBind(intent: Intent): IBinder? {
         return null // 사용하지 않음을 의미한다.
     }
 
     override fun onCreate() {
         super.onCreate()
-        initMusic()
         createNotificationChannel()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { // 버전 확인
             showNotification()
         }
 
@@ -63,11 +60,5 @@ class ForegroundService : Service() {
 
             manager.createNotificationChannel(serviceChannel)
         }
-    }
-
-    private fun initMusic() {
-        musicPlayer = MediaPlayer.create(this, R.raw.music_lilac)
-        musicPlayer.isLooping = true
-        musicPlayer.setVolume(100F, 100F)
     }
 }

@@ -14,8 +14,10 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var binding : ActivityMainBinding
     lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
-    private var song : Song = Song()
-    private var gson : Gson = Gson()
+
+    val songs = arrayListOf<Song>()
+    lateinit var songDB: SongDatabase
+    var nowPos = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,6 +27,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         inputDummySongs()
+        initPlayList()
         initBottomNavigation()
 
         activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -46,15 +49,24 @@ class MainActivity : AppCompatActivity() {
 //            intent.putExtra("playTime", song.playTime)
 //            intent.putExtra("isPlaying", song.isPlaying)
 //            intent.putExtra("music", song.music)
-//            activityResultLauncher.launch(intent)
             val editor = getSharedPreferences("song", MODE_PRIVATE).edit()
-            editor.putInt("songId", song.id)
+            editor.putInt("songId", songs[nowPos].id)
             editor.apply()
 
             val intent = Intent(this,SongActivity::class.java)
-            startActivity(intent)
+            activityResultLauncher.launch(intent)
         }
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        val sharedPreferences = getSharedPreferences("song", MODE_PRIVATE)
+        val songId = sharedPreferences.getInt("songId", 0)
+
+        nowPos = getPlayingSongPosition(songId)
+        setMiniPlayer(songs[nowPos])
     }
 
     private fun initBottomNavigation() {
@@ -97,29 +109,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // SongActivity에 갔다가 다시 돌아왔을 때 ui를 업데이트하는 데에는 일반적으로 onResume보다 onStart를 사용
-    override fun onStart() {
-        super.onStart()
-
-        val sharedPreferences = getSharedPreferences("song", MODE_PRIVATE)
-        val songId = sharedPreferences.getInt("songId", 0)
-
-        val songDB = SongDatabase.getInstance(this)!!
-
-        song = if (songId == 0){
-            songDB.songDao().getSong(1)
-        } else{
-            songDB.songDao().getSong(songId)
+    private fun getPlayingSongPosition(songId: Int): Int{
+        for (i in 0 until songs.size){
+            if (songs[i].id == songId){
+                return i
+            }
         }
+        return 0
+    }
 
-        Log.d("song ID", song.id.toString())
-        setMiniPlayer(song)
+    private fun initPlayList(){
+        songDB = SongDatabase.getInstance(this)!!
+        songs.addAll(songDB.songDao().getSongs())
     }
 
     private fun setMiniPlayer(song : Song) {
         binding.mainMiniplayerTitleTv.text = song.title
         binding.mainMiniplayerSingerTv.text = song.singer
-        binding.mainMiniplayerProgressSb.progress = (song.second * 100000 / song.playTime)
+        Log.d("songInfo", song.toString())
+        val sharedPreferences = getSharedPreferences("song", MODE_PRIVATE)
+        val second = sharedPreferences.getInt("second", 0)
+        Log.d("spfSecond", second.toString())
+        binding.mainMiniplayerProgressSb.progress = (second * 100000 / song.playTime)
     }
 
     fun updateMainPlayerCl(album : Album) {
@@ -144,6 +155,7 @@ class MainActivity : AppCompatActivity() {
                 "music_lilac",
                 R.drawable.img_album_exp2,
                 false,
+                1
             )
         )
 
@@ -157,6 +169,7 @@ class MainActivity : AppCompatActivity() {
                 "music_flu",
                 R.drawable.img_album_exp2,
                 false,
+                1
             )
         )
 
@@ -170,6 +183,7 @@ class MainActivity : AppCompatActivity() {
                 "music_butter",
                 R.drawable.img_album_exp,
                 false,
+                2
             )
         )
 
@@ -183,6 +197,7 @@ class MainActivity : AppCompatActivity() {
                 "music_next",
                 R.drawable.img_album_exp3,
                 false,
+                3
             )
         )
 
@@ -197,6 +212,7 @@ class MainActivity : AppCompatActivity() {
                 "music_boy",
                 R.drawable.img_album_exp4,
                 false,
+                4
             )
         )
 
@@ -211,6 +227,7 @@ class MainActivity : AppCompatActivity() {
                 "music_bboom",
                 R.drawable.img_album_exp5,
                 false,
+                5
             )
         )
 

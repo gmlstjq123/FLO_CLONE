@@ -3,21 +3,24 @@ package com.chrome.umcflo
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.Resources
 import android.media.MediaPlayer
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.Toast
+import androidx.databinding.DataBindingUtil
 import com.chrome.umcflo.databinding.ActivitySongBinding
-import com.google.gson.Gson
+import com.google.android.material.snackbar.Snackbar
 
 class SongActivity : AppCompatActivity() {
 
     lateinit var binding : ActivitySongBinding
     lateinit var timer : Timer
     private var mediaPlayer : MediaPlayer? = null // 추후에 미디어 플레이어 해제를 위해 nullable로 선언
-    private var gson : Gson = Gson()
 
     val songs = arrayListOf<Song>()
     lateinit var songDB: SongDatabase
@@ -32,23 +35,23 @@ class SongActivity : AppCompatActivity() {
         initSong()
         initClickListener()
 
-        var title : String? = null
-        var singer : String? = null
-
-        if(intent.hasExtra("title") && intent.hasExtra("singer")){
-            title = intent.getStringExtra("title")
-            singer = intent.getStringExtra("singer")
-            binding.songMusicTitleTv.text = title
-            binding.songSingerNameTv.text = singer
-        }
-
-        binding.songDownIb.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
-            intent.putExtra("message", title + " _ " + singer)
-
-            setResult(RESULT_OK, intent)
-            finish()
-        }
+//        var title : String? = null
+//        var singer : String? = null
+//
+//        if(intent.hasExtra("title") && intent.hasExtra("singer")){
+//            title = intent.getStringExtra("title")
+//            singer = intent.getStringExtra("singer")
+//            binding.songMusicTitleTv.text = title
+//            binding.songSingerNameTv.text = singer
+//        }
+//
+//        binding.songDownIb.setOnClickListener {
+//            val intent = Intent(this, MainActivity::class.java)
+//            intent.putExtra("message", title + " _ " + singer)
+//
+//            setResult(RESULT_OK, intent)
+//            finish()
+//        }
 
         binding.songMiniplayerIv.setOnClickListener {
             setPlayerStatus(true)
@@ -76,11 +79,13 @@ class SongActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         songs[nowPos].second = (songs[nowPos].playTime * binding.songProgressSb.progress) / 100000
+        Log.d("second", songs[nowPos].second.toString())
         songs[nowPos].isPlaying = false
         setPlayerStatus(false)
         val sharedPreferences = getSharedPreferences("song", MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.putInt("songId", songs[nowPos].id)
+        editor.putInt("second", songs[nowPos].second)
         editor.apply()
     }
 
@@ -91,13 +96,16 @@ class SongActivity : AppCompatActivity() {
         mediaPlayer = null // 미디어 플레이어를 해제한다.
     }
 
-    private fun initPlayList(){
+    private fun initPlayList() {
         songDB = SongDatabase.getInstance(this)!!
         songs.addAll(songDB.songDao().getSongs())
     }
 
     private fun initClickListener(){
         binding.songDownIb.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            intent.putExtra("message", songs[nowPos].title + "_" + songs[nowPos].singer)
+            setResult(RESULT_OK, intent)
             finish()
         }
 
@@ -122,13 +130,14 @@ class SongActivity : AppCompatActivity() {
         }
     }
 
+
     private fun initSong() { // intent 방식 사용 안함.
         val spf = getSharedPreferences("song", MODE_PRIVATE)
         val songId = spf.getInt("songId", 0)
 
         nowPos = getPlayingSongPosition(songId)
 
-        Log.d("now Song ID", songs[nowPos].id.toString())
+        Log.d("present pos", nowPos.toString())
 
         startTimer()
         setPlayer(songs[nowPos])
@@ -148,11 +157,13 @@ class SongActivity : AppCompatActivity() {
 
     private fun moveSong(direct: Int) { // +1 또는 -1
         if (nowPos + direct < 0) {
-            Toast.makeText(this,"처음 곡입니다.",Toast.LENGTH_SHORT).show()
+            CustomSnackbar.make(binding.root, "처음 곡입니다.").show()
+            // Toast.makeText(this,"처음 곡입니다.",Toast.LENGTH_SHORT).show()
         }
 
         else if (nowPos + direct >= songs.size){
-            Toast.makeText(this,"마지막 곡입니다.",Toast.LENGTH_SHORT).show()
+            CustomSnackbar.make(binding.root, "마지막 곡입니다").show()
+            // Toast.makeText(this,"마지막 곡입니다.",Toast.LENGTH_SHORT).show()
         }
 
         else {
@@ -192,8 +203,8 @@ class SongActivity : AppCompatActivity() {
         }
         else {
             binding.songLikeIv.setImageResource(R.drawable.ic_my_like_off)
-        }
 
+        }
         setPlayerStatus(song.isPlaying)
     }
 

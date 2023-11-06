@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.chrome.umcflo.databinding.FragmentHomeBinding
 import com.chrome.umcflo.databinding.FragmentLockerBinding
@@ -29,6 +30,12 @@ class LockerFragment : Fragment() {
         TabLayoutMediator(binding.lockerContentTb, binding.lockerContentVp) { tab, position ->
             tab.text = information[position]
         }.attach()
+
+        val bottomSheetFragment = BottomSheetFragment()
+
+        binding.lockerSelectAllTv.setOnClickListener {
+            bottomSheetFragment.show(requireFragmentManager(), "BottomSheetDialog")
+        }
 
         return binding.root
     }
