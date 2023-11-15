@@ -1,45 +1,38 @@
 package com.chrome.umcflo
 
-import android.animation.ObjectAnimator
-import android.graphics.Rect
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.Button
-import android.widget.EditText
 import android.widget.ScrollView
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.animation.doOnEnd
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView.LayoutManager
-import com.chrome.umcflo.databinding.FragmentLockerBinding
 import com.chrome.umcflo.databinding.FragmentLookBinding
-import kotlin.math.abs
 
-class LookFragment : Fragment() {
+class LookFragment : Fragment(), LookView {
 
     lateinit var binding: FragmentLookBinding
-    lateinit var songDB: SongDatabase
+    private lateinit var songDB: SongDatabase
+    private lateinit var floCharAdapter: SongRVAdapter
 
-    lateinit var chartBtn : Button
-    lateinit var videoBtn : Button
-    lateinit var genreBtn : Button
-    lateinit var situationBtn : Button
-    lateinit var audioBtn : Button
-    lateinit var atmostphereBtn : Button
+    private lateinit var chartBtn : Button
+    private lateinit var videoBtn : Button
+    private lateinit var genreBtn : Button
+    private lateinit var situationBtn : Button
+    private lateinit var audioBtn : Button
+    private lateinit var atmosphereBtn : Button
 
     private lateinit var buttonList: List<Button>
 
-    lateinit var chartTv : TextView
-    lateinit var videoTv : TextView
-    lateinit var genreTv : TextView
-    lateinit var situationTv : TextView
-    lateinit var audioTv : TextView
-    lateinit var atmostphereTv : TextView
+    private lateinit var chartTv : TextView
+    private lateinit var videoTv : TextView
+    private lateinit var genreTv : TextView
+    private lateinit var situationTv : TextView
+    private lateinit var audioTv : TextView
+    private lateinit var atmosphereTv : TextView
 
     private lateinit var textList: List<TextView>
 
@@ -57,67 +50,60 @@ class LookFragment : Fragment() {
         songDB = SongDatabase.getInstance(requireContext())!!
 
         // 스크롤 뷰 초기화
-        scrollView = binding.lookSv
-
-        // 버튼 초기화
-        chartBtn = binding.lookChartBtn
-        videoBtn =  binding.lookVideoBtn
-        genreBtn =  binding.lookGenreBtn
-        situationBtn =  binding.lookSituationBtn
-        audioBtn =  binding.lookAudioBtn
-        atmostphereBtn =  binding.lookAtmostphereBtn
-
-        buttonList = listOf(chartBtn, videoBtn, genreBtn, situationBtn, audioBtn, atmostphereBtn)
-
-        // 텍스트 초기화
-        chartTv = binding.lookChartTv
-        videoTv = binding.lookVideoTv
-        genreTv = binding.lookGenreTv
-        situationTv = binding.lookSituationTv
-        audioTv = binding.lookAudioTv
-        atmostphereTv = binding.lookAtmostphereTv
-
-        textList = listOf(chartTv, videoTv, genreTv, situationTv, audioTv, atmostphereTv)
-
-        chartBtn.setOnClickListener {
-            initButton(0)
-        }
-
-        videoBtn.setOnClickListener {
-            initButton(1)
-        }
-
-        genreBtn.setOnClickListener {
-            initButton(2)
-        }
-
-        situationBtn.setOnClickListener {
-            initButton(3)
-        }
-
-        audioBtn.setOnClickListener {
-            initButton(4)
-        }
-
-        atmostphereBtn.setOnClickListener {
-            initButton(5)
-        }
+//        scrollView = binding.lookSv
+//
+//        // 버튼 초기화
+//        chartBtn = binding.lookChartBtn
+//        videoBtn =  binding.lookVideoBtn
+//        genreBtn =  binding.lookGenreBtn
+//        situationBtn =  binding.lookSituationBtn
+//        audioBtn =  binding.lookAudioBtn
+//        atmosphereBtn =  binding.lookAtmostphereBtn
+//
+//        buttonList = listOf(chartBtn, videoBtn, genreBtn, situationBtn, audioBtn, atmosphereBtn)
+//
+//        // 텍스트 초기화
+//        chartTv = binding.lookChartTv
+//        videoTv = binding.lookVideoTv
+//        genreTv = binding.lookGenreTv
+//        situationTv = binding.lookSituationTv
+//        audioTv = binding.lookAudioTv
+//        atmosphereTv = binding.lookAtmostphereTv
+//
+//        textList = listOf(chartTv, videoTv, genreTv, situationTv, audioTv, atmosphereTv)
+//
+//        setButtonClickListeners()
 
         return binding.root
     }
 
     override fun onStart() {
         super.onStart()
-        initRecyclerview()
+        getSongs()
     }
 
-    private fun initRecyclerview(){
-        val recyclerView = binding.lookChartSongRv
-        recyclerView.layoutManager = LinearLayoutManager(requireActivity())
-        val lookAlbumRVAdapter = LockerAlbumRVAdapter()
+    private fun initRecyclerView(result: FloChartResult) {
+        floCharAdapter = SongRVAdapter(requireContext(), result)
 
-        binding.lookChartSongRv.adapter = lookAlbumRVAdapter
-        lookAlbumRVAdapter.addSongs(songDB.songDao().getSongs() as ArrayList<Song>)
+        binding.lookFloChartRv.adapter = floCharAdapter
+    }
+
+    private fun getSongs() {
+        val songService = SongService()
+        songService.setLookView(this)
+
+        songService.getSongs()
+
+    }
+
+    private fun setButtonClickListeners() {
+        for (i in buttonList.indices) {
+            val button = buttonList[i]
+
+            button.setOnClickListener {
+                initButton(i)
+            }
+        }
     }
 
     private fun initButton(idx : Int) {
@@ -129,5 +115,19 @@ class LookFragment : Fragment() {
             }
         }
         scrollView.smoothScrollTo(0, textList[idx].top)
+    }
+
+    override fun onGetSongLoading() {
+        binding.lookLoadingPb.visibility = View.VISIBLE
+    }
+
+    override fun onGetSongSuccess(code: Int, result: FloChartResult) {
+        binding.lookLoadingPb.visibility = View.GONE
+        initRecyclerView(result)
+    }
+
+    override fun onGetSongFailure(code: Int, message: String) {
+        binding.lookLoadingPb.visibility = View.GONE
+        Log.d("LOOK-FRAG/SONG-RESPONSE", message)
     }
 }

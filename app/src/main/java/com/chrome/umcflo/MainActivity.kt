@@ -57,6 +57,8 @@ class MainActivity : AppCompatActivity() {
             activityResultLauncher.launch(intent)
         }
 
+        Log.d("MainActivity", getJwt().toString())
+
     }
 
     override fun onResume() {
@@ -233,6 +235,12 @@ class MainActivity : AppCompatActivity() {
 
         val songDBData = songDB.songDao().getSongs()
         Log.d("DB data", songDBData.toString())
+    }
+
+    private fun getJwt() : String? {
+        val spf = this.getSharedPreferences("auth2", MODE_PRIVATE)
+
+        return spf!!.getString("jwt", "")
     }
 
 }

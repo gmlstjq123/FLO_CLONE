@@ -8,7 +8,7 @@ import android.widget.Toast
 import com.chrome.umcflo.databinding.ActivityLoginBinding
 import com.chrome.umcflo.databinding.ActivitySongBinding
 
-class LoginActivity : AppCompatActivity() {
+class LoginActivity : AppCompatActivity(), LoginView {
 
     lateinit var binding : ActivityLoginBinding
 
@@ -41,16 +41,21 @@ class LoginActivity : AppCompatActivity() {
         val email : String = binding.loginIdEt.text.toString() + "@" + binding.loginDirectInputEt.text.toString()
         val pwd : String = binding.loginPasswordEt.text.toString()
 
-        val songDB = SongDatabase.getInstance(this)!!
-        val user = songDB.userDao().getUser(email, pwd)
+//        val songDB = SongDatabase.getInstance(this)!!
+//        val user = songDB.userDao().getUser(email, pwd)
+//
+//        if (user != null) {
+//            Log.d("LoginActivity", user.id.toString())
+//            saveJwt(user.id)
+//            startMainActivity()
+//        } else {
+//            Toast.makeText(this, "회원 정보가 존재하지 않습니다", Toast.LENGTH_SHORT).show()
+//        }
 
-        if (user != null) {
-            Log.d("LoginActivity", user.id.toString())
-            saveJwt(user.id)
-            startMainActivity()
-        } else {
-            Toast.makeText(this, "회원 정보가 존재하지 않습니다", Toast.LENGTH_SHORT).show()
-        }
+        val authService = AuthService()
+        authService.setLoginView(this)
+
+        authService.login(User(email, pwd, ""))
     }
 
     private fun saveJwt(jwt : Int) {
@@ -61,8 +66,25 @@ class LoginActivity : AppCompatActivity() {
         editor.apply()
     }
 
+    private fun saveJwtFromServer(jwt : String) {
+        val spf = getSharedPreferences("auth2", MODE_PRIVATE)
+        val editor = spf.edit()
+
+        editor.putString("jwt", jwt)
+        editor.apply()
+    }
+
     private fun startMainActivity() {
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
+    }
+
+    override fun onLoginSuccess(code : Int, result : Result) {
+        saveJwtFromServer(result.jwt)
+        startMainActivity()
+    }
+
+    override fun onLoginFailure(message : String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }
